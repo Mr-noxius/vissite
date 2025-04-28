@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VissersHandboek.nl</title>
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Leaflet Kaart CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🎣 VissersHandboek.nl</h1>
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Visspotvinder</a></li>
+                    <li><a href="#">Tools</a></li>
+                    <li><a href="#">Nieuws</a></li>
+                    <li><a href="#">Inloggen</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h2>Jouw Complete Gids voor Vissen</h2>
+            <p>Bekijk visspots, knoop nieuwe knopen en houd je vangsten bij!</p>
+            <a href="#" class="btn">Ontdek Visspots</a>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <div class="feature">
+                <h3>🌦️ Live Weer</h3>
+                <p id="weather">Weer laden...</p>
+            </div>
+            <div class="feature">
+                <h3>🌊 Getijden & Maanstand</h3>
+                <p>Binnenkort beschikbaar!</p>
+            </div>
+            <div class="feature">
+                <h3>📍 Beste Visspots</h3>
+                <p>Zie hieronder de kaart met visspots!</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="map-section">
+        <div id="map" style="height: 400px; margin: 2em 0;"></div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 VissersHandboek.nl - Alle rechten voorbehouden</p>
+        </div>
+    </footer>
+
+    <!-- Leaflet Kaart Scripts -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- Eigen Scripts -->
+    <script>
+        // API KEY instellen
+        const apiKey = "b3dc2d7cfbfeb2d62c7fbed451b3b0b4";
+        
+        // Functie om weer op te halen
+        async function fetchWeather(lat, lon) {
+            try {
+                const response = await fetch(
+                    `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=nl`
+                );
+                const data = await response.json();
+                const weatherHTML = `🌡️ ${data.main.temp}°C, ${data.weather[0].description}`;
+                document.getElementById("weather").innerHTML = weatherHTML;
+        
+                localStorage.setItem("weatherData", weatherHTML);
+                localStorage.setItem("weatherDataTime", new Date().getTime());
+            } catch (error) {
+                document.getElementById("weather").innerHTML = "Kon weer niet laden.";
+            }
+        }
+        
+        // Functie om locatie te vragen
+        function getLocationAndFetchWeather() {
+            const cachedWeather = localStorage.getItem("weatherData");
+            const cacheTime = localStorage.getItem("weatherDataTime");
+            const now = new Date().getTime();
+        
+            if (cachedWeather && cacheTime && (now - cacheTime < 10 * 60 * 1000)) {
+                document.getElementById("weather").innerHTML = cachedWeather;
+            } else {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            fetchWeather(position.coords.latitude, position.coords.longitude);
+                        },
+                        (error) => {
+                            document.getElementById("weather").innerHTML = "Locatie geweigerd.";
+                        }
+                    );
+                } else {
+                    document.getElementById("weather").innerHTML = "Geolocatie niet ondersteund.";
+                }
+            }
+        }
+        
+        // Start direct
+        getLocationAndFetchWeather();
+        </script>        
+
+</body>
+</html>
